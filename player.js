@@ -22,7 +22,11 @@
         }
 
         attachEvents() {
-            this.playPauseBtn.addEventListener( 'click', this.togglePlay.bind(this) )
+            this.playPauseBtn.addEventListener( 'click', this.togglePlay.bind(this), false)
+
+            this.progressBar.addEventListener('input', () => {
+                this.seekTo(this.progressBar.value);
+            }, false);
 
             this.audio.addEventListener('loadedmetadata', () => {
                 this.duration = this.audio.duration;
@@ -33,8 +37,8 @@
 
                 this.durationEl.textContent = `${mins}:${secs}`;
 
-                console.log('duration', this.audio.duration); 
-                console.log('currentTime', this.audio.currentTime);
+                // console.log('duration', this.audio.duration); 
+                // console.log('currentTime', this.audio.currentTime);
             })
 
             this.audio.addEventListener('timeupdate', () => {
@@ -48,14 +52,18 @@
             }
 
             if (this.playing) {
-                await this.audio.pause();
+                this.audio.pause();
                 this.playing = false;
                 this.playPauseBtn.textContent = 'play';
             } else {
                 await this.audio.play();
                 this.playing = true;
-                this.playPauseBtn.textContent = "pause";
+                this.playPauseBtn.textContent = 'pause';
             }
+        }
+        
+        seekTo(value) {
+            this.audio.currentTime = value;
         }
 
         updateAudioTime(time) {
@@ -72,7 +80,7 @@
             // hide default player with style="display: none" on audio
             this.shadowRoot.innerHTML = `
 
-            <audio src="Sunology, Pt. 2.mp3" controls></audio>
+            <audio src="Sunology, Pt. 2.mp3"></audio>
             <button class="play-btn" type="button">play</button>
             <div class="progress-indicator">
                 <span class="current-time">0:00</span>
