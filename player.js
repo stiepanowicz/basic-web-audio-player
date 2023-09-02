@@ -26,9 +26,9 @@
             this.dataArray = new Uint8Array(this.bufferLength);
             this.analyzerNode.getByteFrequencyData(this.dataArray);
 
-            this.analyzerNode
             this.track
                 .connect(this.gainNode)
+                .connect(this.analyzerNode)
                 .connect(this.audioContext.destination);
 
         }
@@ -38,8 +38,24 @@
 
             this.analyzerNode.getByteFrequencyData(this.dataArray);
 
-            this.canvasContext.fillStyle = 'rgb(255, 0, 0)';
+            this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.canvasContext.fillStyle = 'rgba(0, 0, 0, 0)';
             this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            const barWidth = 3;
+            const gap = 2;
+            const barCount = this.bufferLength / ((barWidth + gap) - gap);
+            let x = 0;
+
+            for (let i = 0; i < barCount; i++) {
+                const perc = (this.dataArray[i] * 100) / 255;
+                const h = (perc * this.canvas.height) / 100;
+
+                this.canvasContext.fillStyle = `rgba(${this.dataArray[i]}, 100, 255, 1)`;
+                this.canvasContext.fillRect(x, this.canvas.height - h, barWidth, h);
+
+                x += barWidth + gap;
+            }
 
 
             console.log('-- updateFrequency');
@@ -128,7 +144,7 @@
                 <span class="duration">0:00</span>
             </div>
             <div class="volume-bar">
-                <input type="range" min="0" max="2 " step="0.01" value="${this.volume}" class="volume-slider">
+                <input type="range" min="0" max="2" step="0.01" value="${this.volume}" class="volume-slider">
             </div>
             `;
 
