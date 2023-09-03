@@ -4,18 +4,58 @@
         currentTime = 0;
         duration = 0;
         volume = 0.4;
+        initialized = false;
+        title = 'untitled';
         
         constructor() {
             super();
     
             this.attachShadow({ mode: 'open' });
             this.render();
-            this.initializeAudio();
-            this.attachEvents();
         }
 
-        initializeAudio() {
+        static get observedAttributes() {
+           return ['src', 'title', 'muted', 'crossorigin', 'loop', 'preload']; 
+        }
+
+        async attributeChangedCallback(name, oldValue, newValue) {
+            if (name === 'src') {
+                if (this.playing) {
+                    await this.togglePlay();
+                }
+
+                this.initialized = false;
+                this.render();
+            } else if (name === 'title') {
+                this.title = newValue;
+            }
+
+            if (this.titleElement) {
+                this.titleElement.textContent = this.title;
+            }
+            
+            for (let i = 0; i < this.attributes.length; i++) {
+                const attr = this.attributes[i];
+
+                if (attr.specified && attr.name !== 'title') {
+                    this.audio.setAttribute(attr.name, attr.value);
+                }
+            }
+
+
+            if (!this.initialized) {
+                this.initializeAudio();
+            }
+
+            console.log('--- ', name, oldValue, newValue);
+        }
+
+        initializeAudio() { 
+            if (this.initialized) return;
+
             this.audioContext = new AudioContext();
+
+            this.initialized = true;
 
             this.track  = this.audioContext.createMediaElementSource(this.audio);
             this.gainNode = this.audioContext.createGain();
@@ -31,6 +71,7 @@
                 .connect(this.analyzerNode)
                 .connect(this.audioContext.destination);
 
+            this.attachEvents();
         }
 
         updateFrequency() {
@@ -134,23 +175,27 @@
         render() {
             // hide default player with style="display: none" on audio
             this.shadowRoot.innerHTML = `
+            <figure class="audio-player">
+                <figcaption class="audio-name">${this.title}</figcaption>
+                <audio src="Sunology, Pt. 2.mp3" style="display: none"></audio>
+                <button class="play-btn" type="button">play</button>
+                <canvas style="width: 100%; height: 20px"></canvas>
+                <div class="progress-indicator">
+                    <span class="current-time">0:00</span>
+                    <input type="range" max="100" value="0" class="progress-bar">
+                    <span class="duration">0:00</span>
+                </div>
+                <div class="volume-bar">
+                    <input type="range" min="0" max="2" step="0.01" value="${this.volume}" class="volume-slider">
+                </div>
+            </figure>
 
-            <audio src="Sunology, Pt. 2.mp3"></audio>
-            <button class="play-btn" type="button">play</button>
-            <canvas style="width: 100%; height: 20px"></canvas>
-            <div class="progress-indicator">
-                <span class="current-time">0:00</span>
-                <input type="range" max="100" value="0" class="progress-bar">
-                <span class="duration">0:00</span>
-            </div>
-            <div class="volume-bar">
-                <input type="range" min="0" max="2" step="0.01" value="${this.volume}" class="volume-slider">
-            </div>
             `;
 
             this.audio = this.shadowRoot.querySelector('audio');
             this.canvas = this.shadowRoot.querySelector('canvas');
             this.playPauseBtn = this.shadowRoot.querySelector('.play-btn');
+            this.titleElement = this.shadowRoot.querySelector('.audio-name')
             this.volumeBar = this.shadowRoot.querySelector('.volume-slider');
             this.progressIndicator = this.shadowRoot.querySelector('.progress-indicator');
             this.currentTimeEl = this.progressIndicator.children[0];
