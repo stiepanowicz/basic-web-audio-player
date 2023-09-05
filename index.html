@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Audio Player</title>
     <style>
         body {
@@ -10,7 +11,8 @@
             justify-content: center;
             align-items: center;
             width: 100vw;
-            height: 100 vh;
+            height: 100vh;
+            margin: 0;
         }
 
         * {
@@ -19,10 +21,8 @@
     </style>
 </head>
 <body>
-    <div id="player">
-        <audio-player src="Sunology, Pt. 2.mp3" title="Sunology, Pt. 2"></audio-player>
-        <script src="player.js"></script>
-    </div>
-    
+        <audio-player src="Sunology, Pt. 2.mp3" title="Sunology, Pt. 2" loop preload crossorigin="anonymous"></audio-player>
+
+        <script src="player.js"></script>    
 </body>
 </html>
